@@ -16,16 +16,24 @@ type MetricData = {
 
 export default function ForecastDashboard() {
   const [data, setData] = useState<MetricData[]>([]);
+  const [agencies, setAgencies] = useState<string[]>([]);
+  const [selectedAgency, setSelectedAgency] = useState('Total Grupo');
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    fetch('/api/forecast')
+    fetchData(selectedAgency);
+  }, [selectedAgency]);
+
+  const fetchData = (agency: string) => {
+    setLoading(true);
+    fetch(`/api/forecast?agency=${encodeURIComponent(agency)}`)
       .then(res => res.json())
       .then(result => {
         if (result.success) {
           setData(result.data);
+          setAgencies(result.agencies || []);
         }
         setLoading(false);
       })
@@ -33,7 +41,7 @@ export default function ForecastDashboard() {
         console.error('Error fetching data:', error);
         setLoading(false);
       });
-  }, []);
+  };
 
   if (!mounted || loading) {
     return (
@@ -68,6 +76,25 @@ export default function ForecastDashboard() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Selector de Agencia */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <label htmlFor="agency-select" className="block text-sm font-medium text-gray-700 mb-2">
+            Seleccionar Agencia
+          </label>
+          <select
+            id="agency-select"
+            value={selectedAgency}
+            onChange={(e) => setSelectedAgency(e.target.value)}
+            className="w-full md:w-96 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-lg"
+          >
+            {agencies.map((agency) => (
+              <option key={agency} value={agency}>
+                {agency}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <KpiCard
@@ -98,7 +125,9 @@ export default function ForecastDashboard() {
 
         {/* Gráfica de Ventas */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Tendencia de Ventas</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">
+            Tendencia de Ventas - {selectedAgency}
+          </h2>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={ventasChartData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -114,7 +143,9 @@ export default function ForecastDashboard() {
 
         {/* Tabla de métricas */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Todas las Métricas</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">
+            Todas las Métricas - {selectedAgency}
+          </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
