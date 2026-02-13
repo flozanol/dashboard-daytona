@@ -16,6 +16,29 @@ const AGENCIES = [
   { name: 'MG Santa Fe', col: 'CC' },
 ];
 
+function addToColumn(col: string, offset: number): string {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let value = 0;
+  
+  // Convertir columna a número (A=0, B=1, ..., Z=25, AA=26, etc)
+  for (let i = 0; i < col.length; i++) {
+    value = value * 26 + (col.charCodeAt(i) - 64);
+  }
+  
+  // Agregar offset
+  value += offset;
+  
+  // Convertir de vuelta a letras
+  let result = '';
+  while (value > 0) {
+    const remainder = (value - 1) % 26;
+    result = String.fromCharCode(65 + remainder) + result;
+    value = Math.floor((value - 1) / 26);
+  }
+  
+  return result;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -40,15 +63,12 @@ export async function GET(request: Request) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
-    // Leer nombres de agencias
-    const agenciesResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: "'Dashboard Forecast'!D1:CC1",
-    });
-
-    // Leer datos de la agencia seleccionada
-    const endCol = String.fromCharCode(agency.col.charCodeAt(agency.col.length - 1) + 6);
+    // Calcular columna final (6 columnas después de la inicial)
+    // Columna inicial + 6 = 7 columnas totales (Métrica, Dic, Ene, Feb real, Run-rate, Hist avg, Forecast IA)
+    const endCol = addToColumn(agency.col, 6);
     const range = `'Dashboard Forecast'!${agency.col}7:${endCol}20`;
+    
+    console.log(`Reading range for ${agency.name}: ${range}`);
     
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -56,6 +76,8 @@ export async function GET(request: Request) {
     });
 
     const rows = response.data.values || [];
+    
+    console.log(`Rows retrieved for ${agency.name}:`, rows.length);
     
     const metrics = rows.slice(1).map((row: any[]) => ({
       metric: row[0] || '',
