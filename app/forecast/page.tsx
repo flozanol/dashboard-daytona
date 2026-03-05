@@ -34,7 +34,7 @@ function KpiCard({ title, forecast, real, forecastIA, icon, color, mes }: any) {
         {Math.round(forecastIA)}
       </p>
       <p className="text-xs text-gray-400" suppressHydrationWarning>
-        {mes} real: {Math.round(real)
+        {mes} real: {Math.round(real)}
       </p>
     </div>
   );
