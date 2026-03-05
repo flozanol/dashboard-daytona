@@ -31,10 +31,10 @@ function KpiCard({ title, forecast, real, forecastIA, icon, color, mes }: any) {
       </div>
       <h3 className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">{title}</h3>
       <p className="text-4xl font-bold text-gray-900 mb-2" suppressHydrationWarning>
-        {Math.round(forecast)}
+        {Math.round(forecastIA)}
       </p>
       <p className="text-xs text-gray-400" suppressHydrationWarning>
-        {mes} real: {Math.round(real)} | Forecast IA: {Math.round(forecastIA)}
+        {mes} real: {Math.round(real)
       </p>
     </div>
   );
