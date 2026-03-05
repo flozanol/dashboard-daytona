@@ -42,7 +42,6 @@ function KpiCard({ title, forecast, real, forecastIA, icon, color, mes }: any) {
 
 function FunnelStep({ label, value, prevValue, isFirst }: { label: string; value: number; prevValue?: number; isFirst?: boolean }) {
   const conversionRate = !isFirst && prevValue && prevValue > 0 ? (value / prevValue) * 100 : 100;
-
   return (
     <div className="relative">
       {!isFirst && (
