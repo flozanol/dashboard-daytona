@@ -16,9 +16,11 @@ const AGENCIES = [
   { name: 'MG Santa Fe', col: 'CN' },
 ];
 
-// Fila donde esta el header de meses (fila 6 en Sheets = index 6)
-const HEADER_ROW = 6;
-const DATA_START_ROW = 7;
+// Fila 1: nombres de agencias
+// Fila 7: headers de columnas (Metrica, Dic, Ene, Feb, ... Mar real, Mar forecast, Promedio hist, Forecast IA)
+// Filas 8-20: datos de metricas
+const HEADER_ROW = 7;
+const DATA_START_ROW = 8;
 const DATA_END_ROW = 20;
 
 function colToNumber(col: string): number {
@@ -67,7 +69,7 @@ export async function GET(request: Request) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
-    // Leer fila de headers para saber cuantas columnas hay
+    // Leer fila de headers para esta agencia (hasta 30 columnas de ancho)
     const headerRange = `'Dashboard Forecast'!${agency.col}${HEADER_ROW}:${addToColumn(agency.col, 30)}${HEADER_ROW}`;
     const headerResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -80,17 +82,17 @@ export async function GET(request: Request) {
     if (headers.length < 4) {
       return NextResponse.json({
         success: false,
-        error: `Headers insuficientes para la agencia ${agency.name}. Se encontraron ${headers.length} columnas en la fila ${HEADER_ROW}. Range intentado: ${headerRange}`,
+        error: `Headers insuficientes para ${agency.name}. Se encontraron ${headers.length} columnas en fila ${HEADER_ROW}. Range: ${headerRange}`,
         debugHeaders: headers,
       }, { status: 422 });
     }
 
-    // Encontrar hasta donde llegan los datos (ultima columna con header no vacia)
+    // Filtrar solo columnas no vacias
     const nonEmptyHeaders = headers.filter((h: string) => h !== '');
     const lastColIndex = nonEmptyHeaders.length - 1;
     const endCol = addToColumn(agency.col, lastColIndex);
 
-    // Leer datos de la agencia
+    // Leer datos de la agencia (filas 8 a 20)
     const dataRange = `'Dashboard Forecast'!${agency.col}${DATA_START_ROW}:${endCol}${DATA_END_ROW}`;
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -99,18 +101,20 @@ export async function GET(request: Request) {
 
     const rows = response.data.values || [];
 
-    // Indices de columnas especiales (contando desde el inicio del bloque de la agencia)
-    // Headers esperados: Metrica, [meses historicos...], X real, X Forecast, Promedio hist, Forecast IA
+    // Las ultimas 4 columnas son siempre:
+    // [n-4]: X real  (mes actual real)
+    // [n-3]: X forecast (mes actual forecast)
+    // [n-2]: Promedio hist
+    // [n-1]: Forecast IA
     const forecastIAIndex = nonEmptyHeaders.length - 1;
     const promHistIndex = nonEmptyHeaders.length - 2;
     const mesActualForecastIndex = nonEmptyHeaders.length - 3;
     const mesActualRealIndex = nonEmptyHeaders.length - 4;
 
-    // Meses historicos = todo lo que esta entre Metrica y mesActualReal
+    // Meses historicos = todo entre Metrica (idx 0) y mesActualReal
     const historicalHeaders = nonEmptyHeaders.slice(1, mesActualRealIndex);
 
     const metrics = rows.map((row: any[]) => {
-      // Construir historico dinamico
       const historical: { [key: string]: number } = {};
       historicalHeaders.forEach((header: string, idx: number) => {
         historical[header] = parseFloat(row[idx + 1]) || 0;
@@ -126,15 +130,23 @@ export async function GET(request: Request) {
       };
     });
 
+    // Extraer nombre del mes actual desde el header (ej: "Mar real" -> "Mar")
+    const mesActualRealLabel = nonEmptyHeaders[mesActualRealIndex] || 'Real';
+    const mesActualForecastLabel = nonEmptyHeaders[mesActualForecastIndex] || 'Forecast';
+    const mesActual = mesActualRealLabel
+      .replace(/ real$/i, '')
+      .replace(/ forecast$/i, '')
+      .trim();
+
     return NextResponse.json({
       success: true,
       agency: agency.name,
       agencies: AGENCIES.map(a => a.name),
       headers: {
         historical: historicalHeaders,
-        mesActual: nonEmptyHeaders[mesActualRealIndex]?.replace(' real', '')?.replace(' Real', '') || 'Mes actual',
-        mesActualRealLabel: nonEmptyHeaders[mesActualRealIndex] || 'Real',
-        mesActualForecastLabel: nonEmptyHeaders[mesActualForecastIndex] || 'Forecast',
+        mesActual,
+        mesActualRealLabel,
+        mesActualForecastLabel,
       },
       data: metrics,
     });
