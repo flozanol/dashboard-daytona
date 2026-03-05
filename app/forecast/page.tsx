@@ -42,8 +42,8 @@ function KpiCard({ title, forecast, real, forecastIA, icon, color, mes }: any) {
 
 function FunnelStep({ label, value, prevValue, isFirst }: { label: string; value: number; prevValue?: number; isFirst?: boolean }) {
   const conversionRate = !isFirst && prevValue && prevValue > 0 ? (value / prevValue) * 100 : 100;
-}
-}    <div className="relative">
+    
+  return (
       {!isFirst && (
         <div className="flex items-center justify-center py-2">
           <TrendingDown className="text-gray-400" size={20} />
