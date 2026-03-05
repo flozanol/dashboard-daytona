@@ -168,7 +168,7 @@ export default function ForecastDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <KpiCard
             title="Ventas Nuevos"
-            forecast={ventasNuevos?.mesActualForecast || 0}
+            forecast={ventasNuevos?.forecastIA || 0}
             real={ventasNuevos?.mesActualReal || 0}
             forecastIA={ventasNuevos?.forecastIA || 0}
             icon={<Car size={32} />}
@@ -177,7 +177,7 @@ export default function ForecastDashboard() {
           />
           <KpiCard
             title="Ventas Seminuevos"
-            forecast={ventasSemi?.mesActualForecast || 0}
+            forecast={ventasSemi?.forecastIA || 0}
             real={ventasSemi?.mesActualReal || 0}
             forecastIA={ventasSemi?.forecastIA || 0}
             icon={<Car size={32} />}
@@ -186,7 +186,7 @@ export default function ForecastDashboard() {
           />
           <KpiCard
             title="Visitas a Piso"
-            forecast={visitas?.mesActualForecast || 0}
+            forecast={visitas?.forecastIA || 0}
             real={visitas?.mesActualReal || 0}
             forecastIA={visitas?.forecastIA || 0}
             icon={<Users size={32} />}
@@ -195,7 +195,7 @@ export default function ForecastDashboard() {
           />
           <KpiCard
             title="Leads"
-            forecast={leads?.mesActualForecast || 0}
+            forecast={leads?.forecastIA || 0}
             real={leads?.mesActualReal || 0}
             forecastIA={leads?.forecastIA || 0}
             icon={<TrendingUp size={32} />}
