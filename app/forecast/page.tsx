@@ -113,7 +113,7 @@ export default function ForecastDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-8">
 
         <div className="bg-white rounded-xl shadow-md p-6 mb-8 border-l-4 border-red-500">
-          abel htmlFor="agency-select" className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Seleccionar Agencia</label>
+          <label htmlFor="agency-select" className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">Seleccionar Agencia</label>
           <select id="agency-select" value={selectedAgency} onChange={(e) => setSelectedAgency(e.target.value)} className="w-full md:w-96 px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 text-lg font-semibold bg-white hover:border-red-400 transition-colors">
             {agencies.map((agency) => (<option key={agency} value={agency}>{agency}</option>))}
           </select>
