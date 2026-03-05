@@ -33,7 +33,6 @@ function KpiCard({ title, value, real, icon, color, mes }: any) {
     red: 'border-red-500',
     dark: 'border-gray-800',
   };
-
   return (
     <div className={`bg-white rounded-xl shadow-md p-6 border-l-4 ${borders[color]} hover:shadow-xl transition-shadow`}>
       <div className={`${colors[color]} text-white p-3 rounded-lg w-fit mb-4 shadow-md`}>
@@ -127,7 +126,6 @@ export default function ForecastDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
       <header className="bg-gradient-to-r from-black via-gray-900 to-black text-white py-6 px-6 shadow-2xl border-b-4 border-red-500">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
@@ -145,19 +143,25 @@ export default function ForecastDashboard() {
             </div>
           </div>
           <div className="hidden md:block text-right">
-            <p className="text-sm text-gray-400">Actualizado al día de hoy</p>
-            <p className="text-xs text-gray-500 mt-1">© 2026 Grupo Daytona. Todos los derechos reservados.</p>
+            <p className="text-sm text-gray-400">Actualizado al dia de hoy</p>
+            <p className="text-xs text-gray-500 mt-1">
+              2026 Grupo Daytona. Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Selector de Agencia */}
+
         <div className="bg-white rounded-xl shadow-md p-6 mb-8 border-l-4 border-red-500">
-          abel className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest">
+          abel
+            htmlFor="agency-select"
+            className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest"
+          >
             Seleccionar Agencia
           </label>
           <select
+            id="agency-select"
             value={selectedAgency}
             onChange={(e) => setSelectedAgency(e.target.value)}
             className="w-full md:w-96 px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 text-lg font-semibold bg-white hover:border-red-400 transition-colors"
@@ -168,7 +172,6 @@ export default function ForecastDashboard() {
           </select>
         </div>
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <KpiCard
             title="Ventas Nuevos"
@@ -204,7 +207,6 @@ export default function ForecastDashboard() {
           />
         </div>
 
-        {/* Gráfica de Ventas */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8 border-t-4 border-red-500">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center gap-3">
             <div className="w-1 h-8 bg-red-500 rounded"></div>
@@ -230,24 +232,25 @@ export default function ForecastDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Tabla de métricas */}
         <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-red-500">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center gap-3">
             <div className="w-1 h-8 bg-red-500 rounded"></div>
-            Todas las Métricas — {selectedAgency}
+            Todas las Metricas — {selectedAgency}
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-900 text-white">
-                  <th className="text-left py-4 px-4 font-bold uppercase tracking-wide rounded-tl-lg">Métrica</th>
+                  <th className="text-left py-4 px-4 font-bold uppercase tracking-wide">Metrica</th>
                   {(headers.historical || []).map(mes => (
-                    <th key={mes} className="text-right py-4 px-4 font-bold uppercase tracking-wide">{mes}</th>
+                    <th key={mes} className="text-right py-4 px-4 font-bold uppercase tracking-wide">
+                      {mes}
+                    </th>
                   ))}
                   <th className="text-right py-4 px-4 font-bold uppercase tracking-wide">
                     {headers.mesActualRealLabel || 'Real'}
                   </th>
-                  <th className="text-right py-4 px-4 font-bold uppercase tracking-wide bg-red-500 rounded-tr-lg">
+                  <th className="text-right py-4 px-4 font-bold uppercase tracking-wide bg-red-500">
                     Forecast IA
                   </th>
                 </tr>
@@ -279,9 +282,8 @@ export default function ForecastDashboard() {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="text-center mt-8 text-gray-400 text-xs">
-          © 2026 Grupo Daytona. Todos los derechos reservados. | Dashboard de Forecast
+          2026 Grupo Daytona. Todos los derechos reservados. Dashboard de Forecast
         </div>
       </div>
     </div>
