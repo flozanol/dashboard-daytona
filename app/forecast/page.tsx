@@ -34,23 +34,30 @@ function KpiCard({ title, value, real, icon, color, mes }: any) {
   );
 }
 
-function FunnelStep({ label, value, prevValue, isFirst }: { label: string; value: number; prevValue?: number; isFirst?: boolean }) {
+function FunnelStep({ label, value, prevValue, isFirst, index, totalSteps, colorClass }: { label: string; value: number; prevValue?: number; isFirst?: boolean; index: number; totalSteps: number, colorClass: string }) {
   const conversionRate = !isFirst && prevValue && prevValue > 0 ? (value / prevValue) * 100 : 100;
 
+  // Calculate width based on index to create a funnel shape
+  // Starts at 100% and reduces slightly each step
+  const widthPercent = 100 - (index * (40 / (totalSteps - 1)));
+
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col items-center">
       {!isFirst && (
         <div className="flex items-center justify-center py-2">
-          <TrendingDown className="text-gray-400" size={20} />
-          <span className="ml-2 text-sm font-semibold text-gray-600">
-            {conversionRate.toFixed(0)}%
+          <TrendingDown className="text-gray-400" size={16} />
+          <span className="ml-1 text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+            {conversionRate.toFixed(1)}%
           </span>
         </div>
       )}
-      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
+      <div
+        className={`${colorClass} text-white rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] border-b-4 border-black/10`}
+        style={{ width: `${widthPercent}%`, minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+      >
         <div className="text-center">
-          <p className="text-sm font-medium uppercase tracking-wide mb-1">{label}</p>
-          <p className="text-3xl font-bold">{Math.round(value)}</p>
+          <p className="text-[10px] font-bold uppercase tracking-tighter mb-1 opacity-90">{label}</p>
+          <p className="text-3xl font-black drop-shadow-sm" suppressHydrationWarning>{Math.round(value).toLocaleString()}</p>
         </div>
       </div>
     </div>
@@ -159,54 +166,92 @@ export default function ForecastDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-8 border-t-4 border-red-500">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Funnel Digital / CRM</h2>
-            <div className="space-y-0">
-              <FunnelStep label="Leads" value={leads?.mesActualForecast || 0} isFirst />
+            <div className="flex flex-col items-center space-y-1">
+              <FunnelStep
+                label="Leads"
+                value={leads?.forecastIA || 0}
+                isFirst
+                index={0}
+                totalSteps={5}
+                colorClass="bg-red-500"
+              />
               <FunnelStep
                 label="Leads Contactados"
-                value={leadsContactados?.mesActualForecast || 0}
-                prevValue={leads?.mesActualForecast}
+                value={leadsContactados?.forecastIA || 0}
+                prevValue={leads?.forecastIA}
+                index={1}
+                totalSteps={5}
+                colorClass="bg-red-600"
               />
               <FunnelStep
                 label="Citas Agendadas"
-                value={citasAgendadas?.mesActualForecast || 0}
-                prevValue={leadsContactados?.mesActualForecast}
+                value={citasAgendadas?.forecastIA || 0}
+                prevValue={leadsContactados?.forecastIA}
+                index={2}
+                totalSteps={5}
+                colorClass="bg-red-700"
               />
               <FunnelStep
                 label="Citas Efectivas"
-                value={citasEfectivas?.mesActualForecast || 0}
-                prevValue={citasAgendadas?.mesActualForecast}
+                value={citasEfectivas?.forecastIA || 0}
+                prevValue={citasAgendadas?.forecastIA}
+                index={3}
+                totalSteps={5}
+                colorClass="bg-red-800"
               />
               <FunnelStep
                 label="Ventas Nuevos"
-                value={ventasNuevos?.mesActualForecast || 0}
-                prevValue={citasEfectivas?.mesActualForecast}
+                value={ventasNuevos?.forecastIA || 0}
+                prevValue={citasEfectivas?.forecastIA}
+                index={4}
+                totalSteps={5}
+                colorClass="bg-red-900"
               />
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-8 border-t-4 border-gray-800">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Funnel Showroom / Venta</h2>
-            <div className="space-y-0">
-              <FunnelStep label="Visitas a Piso" value={visitas?.mesActualForecast || 0} isFirst />
+            <div className="flex flex-col items-center space-y-1">
+              <FunnelStep
+                label="Visitas a Piso"
+                value={visitas?.forecastIA || 0}
+                isFirst
+                index={0}
+                totalSteps={5}
+                colorClass="bg-gray-400"
+              />
               <FunnelStep
                 label="Pruebas de Manejo"
-                value={pruebasManejo?.mesActualForecast || 0}
-                prevValue={visitas?.mesActualForecast}
+                value={pruebasManejo?.forecastIA || 0}
+                prevValue={visitas?.forecastIA}
+                index={1}
+                totalSteps={5}
+                colorClass="bg-gray-500"
               />
               <FunnelStep
                 label="Solicitudes Financiera"
-                value={solicitudesFinanciera?.mesActualForecast || 0}
-                prevValue={pruebasManejo?.mesActualForecast}
+                value={solicitudesFinanciera?.forecastIA || 0}
+                prevValue={pruebasManejo?.forecastIA}
+                index={2}
+                totalSteps={5}
+                colorClass="bg-gray-600"
               />
               <FunnelStep
                 label="Avalúos"
-                value={avaluos?.mesActualForecast || 0}
-                prevValue={solicitudesFinanciera?.mesActualForecast}
+                value={avaluos?.forecastIA || 0}
+                prevValue={solicitudesFinanciera?.forecastIA}
+                index={3}
+                totalSteps={5}
+                colorClass="bg-gray-700"
               />
               <FunnelStep
                 label="Ventas Nuevos"
-                value={ventasNuevos?.mesActualForecast || 0}
-                prevValue={avaluos?.mesActualForecast}
+                value={ventasNuevos?.forecastIA || 0}
+                prevValue={avaluos?.forecastIA}
+                index={4}
+                totalSteps={5}
+                colorClass="bg-gray-900"
               />
             </div>
           </div>
