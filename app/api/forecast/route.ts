@@ -3,29 +3,30 @@ import { NextResponse } from 'next/server';
 
 const AGENCIES = [
   { name: 'Total Grupo', col: 'D' },
-  { name: 'Acura Interlomas', col: 'L' },
-  { name: 'GWM Morelos', col: 'T' },
-  { name: 'GWM Iztapalapa', col: 'AB' },
-  { name: 'Honda Cuajimalpa', col: 'AJ' },
-  { name: 'Honda Interlomas', col: 'AR' },
-  { name: 'KIA Interlomas', col: 'AZ' },
-  { name: 'KIA Iztapalapa', col: 'BH' },
-  { name: 'MG Cuajimalpa', col: 'BP' },
-  { name: 'MG Interlomas', col: 'BX' },
-  { name: 'MG Iztapalapa', col: 'CF' },
-  { name: 'MG Santa Fe', col: 'CN' },
+  { name: 'Acura Interlomas', col: 'M' },
+  { name: 'GWM Morelos', col: 'V' },
+  { name: 'GWM Iztapalapa', col: 'AE' },
+  { name: 'Honda Cuajimalpa', col: 'AN' },
+  { name: 'Honda Interlomas', col: 'AW' },
+  { name: 'KIA Interlomas', col: 'BF' },
+  { name: 'KIA Iztapalapa', col: 'BO' },
+  { name: 'MG Cuajimalpa', col: 'BX' },
+  { name: 'MG Interlomas', col: 'CG' },
+  { name: 'MG Iztapalapa', col: 'CP' },
+  { name: 'MG Santa Fe', col: 'CY' },
 ];
 
-// Estructura fija del Sheet: 8 columnas por agencia
+// Estructura actualizada del Sheet: 9 columnas por agencia
 // col+0: Metrica
 // col+1: Dic (historico 1)
 // col+2: Ene (historico 2)
 // col+3: Feb (historico 3)
-// col+4: Mar real (mes actual real)
-// col+5: Mar forecast (mes actual forecast)
-// col+6: Promedio hist mensual
-// col+7: Forecast IA
-const BLOCK_SIZE = 8;
+// col+4: Mar (historico 4)
+// col+5: Abr real (mes actual real)
+// col+6: Abr forecast (mes actual forecast)
+// col+7: Promedio hist mensual
+// col+8: Forecast IA
+const BLOCK_SIZE = 9;
 const HEADER_ROW = 7;
 const DATA_START_ROW = 8;
 const DATA_END_ROW = 20;
@@ -33,11 +34,11 @@ const DATA_END_ROW = 20;
 // Indices dentro del bloque de cada agencia
 const IDX_METRICA = 0;
 const IDX_HISTORICO_START = 1;
-const IDX_HISTORICO_END = 3; // Dic, Ene, Feb
-const IDX_MES_REAL = 4;      // Mar real
-const IDX_MES_FORECAST = 5;  // Mar forecast
-const IDX_PROM_HIST = 6;     // Promedio hist mensual
-const IDX_FORECAST_IA = 7;   // Forecast IA
+const IDX_HISTORICO_END = 4; // Dic, Ene, Feb, Mar
+const IDX_MES_REAL = 5;      // Abr real
+const IDX_MES_FORECAST = 6;  // Abr forecast
+const IDX_PROM_HIST = 7;     // Promedio hist mensual
+const IDX_FORECAST_IA = 8;   // Forecast IA
 
 function colToNumber(col: string): number {
   let result = 0;
@@ -105,10 +106,13 @@ export async function GET(request: Request) {
     });
     const rows = dataResponse.data.values || [];
 
-    // Nombres de meses historicos (indices 1, 2, 3 del header)
+    // Nombres de meses historicos (indices 1, 2, 3, 4 del header)
     const historicalHeaders = headerRow.slice(IDX_HISTORICO_START, IDX_HISTORICO_END + 1);
-    const mesActualRealLabel = headerRow[IDX_MES_REAL] || 'Mar real';
-    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Mar forecast';
+    
+    // También ajusté aquí un poco los "fallbacks" por si acaso la celda viene vacía,
+    // que use "Abr real" en lugar de "Mar real" por defecto.
+    const mesActualRealLabel = headerRow[IDX_MES_REAL] || 'Abr real';
+    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Abr forecast';
     const mesActual = mesActualRealLabel.replace(/ real$/i, '').trim();
 
     const metrics = rows.map((row: any[]) => {
