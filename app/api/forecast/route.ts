@@ -2,18 +2,18 @@ import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
 const AGENCIES = [
-  { name: 'Total Grupo', col: 'D' },
-  { name: 'Acura Interlomas', col: 'M' },
-  { name: 'GWM Morelos', col: 'V' },
-  { name: 'GWM Iztapalapa', col: 'AE' },
-  { name: 'Honda Cuajimalpa', col: 'AN' },
-  { name: 'Honda Interlomas', col: 'AW' },
-  { name: 'KIA Interlomas', col: 'BF' },
-  { name: 'KIA Iztapalapa', col: 'BO' },
-  { name: 'MG Cuajimalpa', col: 'BX' },
-  { name: 'MG Interlomas', col: 'CG' },
-  { name: 'MG Iztapalapa', col: 'CP' },
-  { name: 'MG Santa Fe', col: 'CY' },
+  { name: 'Total Grupo', col: 'D' },      // 4
+  { name: 'Acura Interlomas', col: 'N' }, // 14
+  { name: 'GWM Morelos', col: 'X' },      // 24
+  { name: 'GWM Iztapalapa', col: 'AH' },  // 34
+  { name: 'Honda Cuajimalpa', col: 'AR' },// 44
+  { name: 'Honda Interlomas', col: 'BB' },// 54
+  { name: 'KIA Interlomas', col: 'BL' },  // 64
+  { name: 'KIA Iztapalapa', col: 'BV' },  // 74
+  { name: 'MG Cuajimalpa', col: 'CF' },   // 84
+  { name: 'MG Interlomas', col: 'CP' },   // 94
+  { name: 'MG Iztapalapa', col: 'CZ' },   // 104
+  { name: 'MG Santa Fe', col: 'DJ' },     // 114
 ];
 
 // Estructura actualizada del Sheet: 9 columnas por agencia
