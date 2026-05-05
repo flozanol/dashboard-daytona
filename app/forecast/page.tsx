@@ -67,7 +67,7 @@ function FunnelStep({ label, value, prevValue, isFirst, index, totalSteps, color
 export default function ForecastDashboard() {
   const [data, setData] = useState<MetricData[]>([]);
   const [agencies, setAgencies] = useState<string[]>([]);
-  const [headers, setHeaders] = useState<Headers>({ historical: [], mesActual: '', mesActualRealLabel: '', mesActualForecastLabel: '' });
+  const [headers, setHeaders] = useState<Headers>({ historical: [], mesActual: 'Mayo', mesActualRealLabel: 'Mayo real', mesActualForecastLabel: 'Mayo forecast' });
   const [selectedAgency, setSelectedAgency] = useState('Total Grupo');
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);

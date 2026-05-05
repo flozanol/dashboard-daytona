@@ -82,6 +82,26 @@ export async function getEneroData() {
   return res.data.values || [];
 }
 
+export async function getAbrilData() {
+  const auth = getAuth();
+  const sheets = google.sheets({ version: "v4", auth });
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+
+  const range = "Res Abr 26!A1:Z200"; // Tu nueva pestaña
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+  return res.data.values || [];
+}
+
+export async function getMayoData() {
+  const auth = getAuth();
+  const sheets = google.sheets({ version: "v4", auth });
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+
+  const range = "Res May 26!A1:Z200"; // Tu nueva pestaña
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+  return res.data.values || [];
+}
+
 // ---------- TIPOS / PARSER BÁSICO ----------
 
 export type AgenciaKey =

@@ -22,11 +22,12 @@ const AGENCIES = [
 // col+2: Ene (historico 2)
 // col+3: Feb (historico 3)
 // col+4: Mar (historico 4)
-// col+5: Abr real (mes actual real)
-// col+6: Abr forecast (mes actual forecast)
-// col+7: Promedio hist mensual
-// col+8: Forecast IA
-const BLOCK_SIZE = 9;
+// col+5: Abr (historico 5)
+// col+6: Mayo real (mes actual real)
+// col+7: Mayo forecast (mes actual forecast)
+// col+8: Promedio hist mensual
+// col+9: Forecast IA
+const BLOCK_SIZE = 10; // Antes era 8 o 9
 const HEADER_ROW = 7;
 const DATA_START_ROW = 8;
 const DATA_END_ROW = 20;
@@ -34,11 +35,11 @@ const DATA_END_ROW = 20;
 // Indices dentro del bloque de cada agencia
 const IDX_METRICA = 0;
 const IDX_HISTORICO_START = 1;
-const IDX_HISTORICO_END = 4; // Dic, Ene, Feb, Mar
-const IDX_MES_REAL = 5;      // Abr real
-const IDX_MES_FORECAST = 6;  // Abr forecast
-const IDX_PROM_HIST = 7;     // Promedio hist mensual
-const IDX_FORECAST_IA = 8;   // Forecast IA
+const IDX_HISTORICO_END = 5; // Ahora incluye Dic, Ene, Feb, Mar, Abr
+const IDX_MES_REAL = 6;      // Mayo real
+const IDX_MES_FORECAST = 7;  // Mayo forecast
+const IDX_PROM_HIST = 8;     // Promedio hist mensual
+const IDX_FORECAST_IA = 9;   // Forecast IA
 
 function colToNumber(col: string): number {
   let result = 0;
@@ -110,9 +111,9 @@ export async function GET(request: Request) {
     const historicalHeaders = headerRow.slice(IDX_HISTORICO_START, IDX_HISTORICO_END + 1);
     
     // También ajusté aquí un poco los "fallbacks" por si acaso la celda viene vacía,
-    // que use "Abr real" en lugar de "Mar real" por defecto.
-    const mesActualRealLabel = headerRow[IDX_MES_REAL] || 'Abr real';
-    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Abr forecast';
+    // que use "Mayo real" en lugar de "Abr real" por defecto.
+    const mesActualRealLabel = headerRow[IDX_MES_REAL] || 'Mayo real';
+    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Mayo forecast';
     const mesActual = mesActualRealLabel.replace(/ real$/i, '').trim();
 
     const metrics = rows.map((row: any[]) => {
