@@ -1,31 +1,45 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
+// BLOCK_SIZE = 12 columnas por agencia (se agregó Julio)
+// Columnas base calculadas: primera agencia en col D (4), cada bloque ocupa 12 cols.
+// Total Grupo:      D  = col 4   → termina en O  (col 15)
+// Acura Interlomas: P  = col 16  → termina en AA (col 27)
+// GWM Morelos:      AB = col 28  → termina en AM (col 39)
+// GWM Iztapalapa:   AN = col 40  → termina en AY (col 51)
+// Honda Cuajimalpa: AZ = col 52  → termina en BK (col 63)
+// Honda Interlomas: BL = col 64  → termina en BW (col 75)
+// KIA Interlomas:   BX = col 76  → termina en CI (col 87)
+// KIA Iztapalapa:   CJ = col 88  → termina en CU (col 99)
+// MG Cuajimalpa:    CV = col 100 → termina en DG (col 111)
+// MG Interlomas:    DH = col 112 → termina en DS (col 123)
+// MG Iztapalapa:    DT = col 124 → termina en EE (col 135)
+// MG Santa Fe:      EF = col 136 → termina en EQ (col 147)
 const AGENCIES = [
-  { name: 'Total Grupo', col: 'D' },      // 4
-  { name: 'Acura Interlomas', col: 'O' }, // 15
-  { name: 'GWM Morelos', col: 'Z' },      // 26
-  { name: 'GWM Iztapalapa', col: 'AK' },  // 37
-  { name: 'Honda Cuajimalpa', col: 'AV' },// 48
-  { name: 'Honda Interlomas', col: 'BG' },// 59
-  { name: 'KIA Interlomas', col: 'BR' },  // 70
-  { name: 'KIA Iztapalapa', col: 'CC' },  // 81
-  { name: 'MG Cuajimalpa', col: 'CN' },   // 92
-  { name: 'MG Interlomas', col: 'CY' },   // 103
-  { name: 'MG Iztapalapa', col: 'DJ' },   // 114
-  { name: 'MG Santa Fe', col: 'DU' },     // 125
+  { name: 'Total Grupo',      col: 'D'  },
+  { name: 'Acura Interlomas', col: 'P'  },
+  { name: 'GWM Morelos',      col: 'AB' },
+  { name: 'GWM Iztapalapa',   col: 'AN' },
+  { name: 'Honda Cuajimalpa', col: 'AZ' },
+  { name: 'Honda Interlomas', col: 'BL' },
+  { name: 'KIA Interlomas',   col: 'BX' },
+  { name: 'KIA Iztapalapa',   col: 'CJ' },
+  { name: 'MG Cuajimalpa',    col: 'CV' },
+  { name: 'MG Interlomas',    col: 'DH' },
+  { name: 'MG Iztapalapa',    col: 'DT' },
+  { name: 'MG Santa Fe',      col: 'EF' },
 ];
 
-// Estructura actualizada del Sheet: 12 columnas por agencia (se agregó Julio)
+// Estructura del Sheet: 12 columnas por agencia
 // col+0:  Metrica
 // col+1:  Dic  (historico 1)
 // col+2:  Ene  (historico 2)
 // col+3:  Feb  (historico 3)
 // col+4:  Mar  (historico 4)
 // col+5:  Abr  (historico 5)
-// col+6:  Mayo real (historico 6)
-// col+7:  Junio real (historico 7)
-// col+8:  Julio real (mes actual real)  <- NUEVO
+// col+6:  Mayo (historico 6)
+// col+7:  Junio (historico 7)
+// col+8:  Julio real  (mes actual real)
 // col+9:  Julio forecast (mes actual forecast)
 // col+10: Promedio hist mensual
 // col+11: Forecast IA
@@ -34,14 +48,13 @@ const HEADER_ROW = 7;
 const DATA_START_ROW = 8;
 const DATA_END_ROW = 20;
 
-// Indices dentro del bloque de cada agencia
 const IDX_METRICA = 0;
 const IDX_HISTORICO_START = 1;
-const IDX_HISTORICO_END = 7; // Ahora incluye Junio real como último histórico
-const IDX_MES_REAL = 8;      // Julio real
-const IDX_MES_FORECAST = 9;  // Julio forecast
-const IDX_PROM_HIST = 10;    // Promedio hist mensual
-const IDX_FORECAST_IA = 11;  // Forecast IA
+const IDX_HISTORICO_END = 7;
+const IDX_MES_REAL = 8;
+const IDX_MES_FORECAST = 9;
+const IDX_PROM_HIST = 10;
+const IDX_FORECAST_IA = 11;
 
 function colToNumber(col: string): number {
   let result = 0;
@@ -89,11 +102,10 @@ export async function GET(request: Request) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
-    // Columna inicial y final del bloque de esta agencia (exactamente BLOCK_SIZE columnas)
     const startCol = agency.col;
     const endCol = addToColumn(startCol, BLOCK_SIZE - 1);
 
-    // Leer headers de la fila 7
+    // Leer headers fila 7
     const headerRange = `'Dashboard Forecast'!${startCol}${HEADER_ROW}:${endCol}${HEADER_ROW}`;
     const headerResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -101,7 +113,7 @@ export async function GET(request: Request) {
     });
     const headerRow = (headerResponse.data.values?.[0] || []) as string[];
 
-    // Leer datos filas 8 a 20
+    // Leer datos filas 8-20
     const dataRange = `'Dashboard Forecast'!${startCol}${DATA_START_ROW}:${endCol}${DATA_END_ROW}`;
     const dataResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -109,10 +121,8 @@ export async function GET(request: Request) {
     });
     const rows = dataResponse.data.values || [];
 
-    // Nombres de meses historicos (indices 1 al 7 del header, ahora incluye Junio)
     const historicalHeaders = headerRow.slice(IDX_HISTORICO_START, IDX_HISTORICO_END + 1);
 
-    // Fallbacks por si la celda viene vacía al inicio del mes
     const mesActualRealLabel = headerRow[IDX_MES_REAL] || 'Julio real';
     const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Julio forecast';
     const mesActual = mesActualRealLabel.replace(/ real$/i, '').trim();
