@@ -1,21 +1,6 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
-// BLOCK_SIZE = 13 columnas por agencia
-// Headers fila 7: Metrica, Dic, Ene, Feb, Mar, Abr, May, Jun, Jul, Ago, Forecast, Promedio hist. mensual, Forecast IA
-// Estructura: col+0=Metrica, col+1-9=Historico (Dic-Ago), col+10=Ago Forecast, col+11=Promedio hist, col+12=Forecast IA
-
-// Columnas base calculadas (cada bloque ocupa 13 cols):
-// Total Grupo:      D  = col 4   -> termina en P  (col 16)
-// Acura Interlomas: Q  = col 17  -> termina en AC (col 29)
-// Honda Cuajimalpa: AD = col 30  -> termina en AP (col 42)
-// Honda Interlomas: AQ = col 43  -> termina en BC (col 55)
-// KIA Interlomas:   BD = col 56  -> termina en BP (col 68)
-// KIA Iztapalapa:   BQ = col 69  -> termina en CB (col 81)
-// MG Cuajimalpa:    CC = col 82  -> termina en CO (col 94)
-// MG Interlomas:    CP = col 95  -> termina en DB (col 107)
-// MG Iztapalapa:    DC = col 108 -> termina en DO (col 120)
-// MG Santa Fe:      DP = col 121 -> termina en EB (col 133)
 const AGENCIES = [
   { name: 'Total Grupo',      col: 'D'  },
   { name: 'Acura Interlomas', col: 'Q'  },
@@ -23,26 +8,12 @@ const AGENCIES = [
   { name: 'Honda Interlomas', col: 'AQ' },
   { name: 'KIA Interlomas',   col: 'BD' },
   { name: 'KIA Iztapalapa',   col: 'BQ' },
-  { name: 'MG Cuajimalpa',    col: 'CC' },
-  { name: 'MG Interlomas',    col: 'CP' },
-  { name: 'MG Iztapalapa',    col: 'DC' },
-  { name: 'MG Santa Fe',      col: 'DP' },
+  { name: 'MG Cuajimalpa',    col: 'CD' },
+  { name: 'MG Interlomas',    col: 'CQ' },
+  { name: 'MG Iztapalapa',    col: 'DD' },
+  { name: 'MG Santa Fe',      col: 'DQ' },
 ];
 
-// Estructura del Sheet: 13 columnas por agencia
-// col+0:  Metrica
-// col+1:  Dic  (historico 1)
-// col+2:  Ene  (historico 2)
-// col+3:  Feb  (historico 3)
-// col+4:  Mar  (historico 4)
-// col+5:  Abr  (historico 5)
-// col+6:  May  (historico 6)
-// col+7:  Jun  (historico 7)
-// col+8:  Jul  (historico 8)
-// col+9:  Ago  (historico 9)
-// col+10: Ago forecast (mes actual forecast)
-// col+11: Promedio hist mensual
-// col+12: Forecast IA
 const BLOCK_SIZE = 13;
 const HEADER_ROW = 7;
 const DATA_START_ROW = 8;
@@ -57,9 +28,7 @@ const IDX_FORECAST_IA = 12;
 
 function colToNumber(col: string): number {
   let result = 0;
-  for (let i = 0; i < col.length; i++) {
-    result = result * 26 + (col.charCodeAt(i) - 64);
-  }
+  for (let i = 0; i < col.length; i++) result = result * 26 + (col.charCodeAt(i) - 64);
   return result;
 }
 
@@ -84,10 +53,7 @@ export async function GET(request: Request) {
 
     const agency = AGENCIES.find(a => a.name === agencyParam);
     if (!agency) {
-      return NextResponse.json(
-        { success: false, error: 'Agencia no encontrada' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Agencia no encontrada' }, { status: 404 });
     }
 
     const auth = new google.auth.GoogleAuth({
@@ -105,23 +71,16 @@ export async function GET(request: Request) {
     const endCol = addToColumn(startCol, BLOCK_SIZE - 1);
 
     const headerRange = `'Dashboard Forecast'!${startCol}${HEADER_ROW}:${endCol}${HEADER_ROW}`;
-    const headerResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: headerRange,
-    });
+    const headerResponse = await sheets.spreadsheets.values.get({ spreadsheetId, range: headerRange });
     const headerRow = (headerResponse.data.values?.[0] || []) as string[];
 
     const dataRange = `'Dashboard Forecast'!${startCol}${DATA_START_ROW}:${endCol}${DATA_END_ROW}`;
-    const dataResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: dataRange,
-    });
+    const dataResponse = await sheets.spreadsheets.values.get({ spreadsheetId, range: dataRange });
     const rows = dataResponse.data.values || [];
 
     const historicalHeaders = headerRow.slice(IDX_HISTORICO_START, IDX_HISTORICO_END + 1);
-
-    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Ago forecast';
-    const mesActual = mesActualForecastLabel.replace(/ forecast$/i, '').trim();
+    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'forecast';
+    const mesActual = 'Ago';
 
     const metrics = rows.map((row: any[]) => {
       const historical: { [key: string]: number } = {};
@@ -146,16 +105,13 @@ export async function GET(request: Request) {
       headers: {
         historical: historicalHeaders,
         mesActual,
-        mesActualRealLabel: mesActual + ' real',
+        mesActualRealLabel: 'Ago real',
         mesActualForecastLabel,
       },
       data: metrics,
     });
   } catch (error: any) {
     console.error('Error reading forecast data:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
