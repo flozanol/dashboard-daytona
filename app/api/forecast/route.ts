@@ -1,60 +1,59 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
-// BLOCK_SIZE = 12 columnas por agencia (se agregó Julio)
-// Columnas base calculadas: primera agencia en col D (4), cada bloque ocupa 12 cols.
-// Total Grupo:      D  = col 4   → termina en O  (col 15)
-// Acura Interlomas: P  = col 16  → termina en AA (col 27)
-// GWM Morelos:      AB = col 28  → termina en AM (col 39)
-// GWM Iztapalapa:   AN = col 40  → termina en AY (col 51)
-// Honda Cuajimalpa: AZ = col 52  → termina en BK (col 63)
-// Honda Interlomas: BL = col 64  → termina en BW (col 75)
-// KIA Interlomas:   BX = col 76  → termina en CI (col 87)
-// KIA Iztapalapa:   CJ = col 88  → termina en CU (col 99)
-// MG Cuajimalpa:    CV = col 100 → termina en DG (col 111)
-// MG Interlomas:    DH = col 112 → termina en DS (col 123)
-// MG Iztapalapa:    DT = col 124 → termina en EE (col 135)
-// MG Santa Fe:      EF = col 136 → termina en EQ (col 147)
+// BLOCK_SIZE = 13 columnas por agencia
+// Headers fila 7: Metrica, Dic, Ene, Feb, Mar, Abr, May, Jun, Jul, Ago, Forecast, Promedio hist. mensual, Forecast IA
+// Estructura: col+0=Metrica, col+1-9=Historico (Dic-Ago), col+10=Ago Forecast, col+11=Promedio hist, col+12=Forecast IA
+
+// Columnas base calculadas (cada bloque ocupa 13 cols):
+// Total Grupo:      D  = col 4   -> termina en P  (col 16)
+// Acura Interlomas: Q  = col 17  -> termina en AC (col 29)
+// Honda Cuajimalpa: AD = col 30  -> termina en AP (col 42)
+// Honda Interlomas: AQ = col 43  -> termina en BC (col 55)
+// KIA Interlomas:   BD = col 56  -> termina en BP (col 68)
+// KIA Iztapalapa:   BQ = col 69  -> termina en CB (col 81)
+// MG Cuajimalpa:    CC = col 82  -> termina en CO (col 94)
+// MG Interlomas:    CP = col 95  -> termina en DB (col 107)
+// MG Iztapalapa:    DC = col 108 -> termina en DO (col 120)
+// MG Santa Fe:      DP = col 121 -> termina en EB (col 133)
 const AGENCIES = [
   { name: 'Total Grupo',      col: 'D'  },
-  { name: 'Acura Interlomas', col: 'P'  },
-  { name: 'GWM Morelos',      col: 'AB' },
-  { name: 'GWM Iztapalapa',   col: 'AN' },
-  { name: 'Honda Cuajimalpa', col: 'AZ' },
-  { name: 'Honda Interlomas', col: 'BL' },
-  { name: 'KIA Interlomas',   col: 'BX' },
-  { name: 'KIA Iztapalapa',   col: 'CJ' },
-  { name: 'MG Cuajimalpa',    col: 'CV' },
-  { name: 'MG Interlomas',    col: 'DH' },
-  { name: 'MG Iztapalapa',    col: 'DT' },
-  { name: 'MG Santa Fe',      col: 'EF' },
+  { name: 'Acura Interlomas', col: 'Q'  },
+  { name: 'Honda Cuajimalpa', col: 'AD' },
+  { name: 'Honda Interlomas', col: 'AQ' },
+  { name: 'KIA Interlomas',   col: 'BD' },
+  { name: 'KIA Iztapalapa',   col: 'BQ' },
+  { name: 'MG Cuajimalpa',    col: 'CC' },
+  { name: 'MG Interlomas',    col: 'CP' },
+  { name: 'MG Iztapalapa',    col: 'DC' },
+  { name: 'MG Santa Fe',      col: 'DP' },
 ];
 
-// Estructura del Sheet: 12 columnas por agencia
+// Estructura del Sheet: 13 columnas por agencia
 // col+0:  Metrica
 // col+1:  Dic  (historico 1)
 // col+2:  Ene  (historico 2)
 // col+3:  Feb  (historico 3)
 // col+4:  Mar  (historico 4)
 // col+5:  Abr  (historico 5)
-// col+6:  Mayo (historico 6)
-// col+7:  Junio (historico 7)
-// col+8:  Julio real  (mes actual real)
-// col+9:  Julio forecast (mes actual forecast)
-// col+10: Promedio hist mensual
-// col+11: Forecast IA
-const BLOCK_SIZE = 12;
+// col+6:  May  (historico 6)
+// col+7:  Jun  (historico 7)
+// col+8:  Jul  (historico 8)
+// col+9:  Ago  (historico 9)
+// col+10: Ago forecast (mes actual forecast)
+// col+11: Promedio hist mensual
+// col+12: Forecast IA
+const BLOCK_SIZE = 13;
 const HEADER_ROW = 7;
 const DATA_START_ROW = 8;
 const DATA_END_ROW = 20;
 
 const IDX_METRICA = 0;
 const IDX_HISTORICO_START = 1;
-const IDX_HISTORICO_END = 7;
-const IDX_MES_REAL = 8;
-const IDX_MES_FORECAST = 9;
-const IDX_PROM_HIST = 10;
-const IDX_FORECAST_IA = 11;
+const IDX_HISTORICO_END = 9;
+const IDX_MES_FORECAST = 10;
+const IDX_PROM_HIST = 11;
+const IDX_FORECAST_IA = 12;
 
 function colToNumber(col: string): number {
   let result = 0;
@@ -105,7 +104,6 @@ export async function GET(request: Request) {
     const startCol = agency.col;
     const endCol = addToColumn(startCol, BLOCK_SIZE - 1);
 
-    // Leer headers fila 7
     const headerRange = `'Dashboard Forecast'!${startCol}${HEADER_ROW}:${endCol}${HEADER_ROW}`;
     const headerResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -113,7 +111,6 @@ export async function GET(request: Request) {
     });
     const headerRow = (headerResponse.data.values?.[0] || []) as string[];
 
-    // Leer datos filas 8-20
     const dataRange = `'Dashboard Forecast'!${startCol}${DATA_START_ROW}:${endCol}${DATA_END_ROW}`;
     const dataResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -123,9 +120,8 @@ export async function GET(request: Request) {
 
     const historicalHeaders = headerRow.slice(IDX_HISTORICO_START, IDX_HISTORICO_END + 1);
 
-    const mesActualRealLabel = headerRow[IDX_MES_REAL] || 'Julio real';
-    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Julio forecast';
-    const mesActual = mesActualRealLabel.replace(/ real$/i, '').trim();
+    const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'Ago forecast';
+    const mesActual = mesActualForecastLabel.replace(/ forecast$/i, '').trim();
 
     const metrics = rows.map((row: any[]) => {
       const historical: { [key: string]: number } = {};
@@ -136,7 +132,7 @@ export async function GET(request: Request) {
       return {
         metric: row[IDX_METRICA] || '',
         historical,
-        mesActualReal: parseFloat(row[IDX_MES_REAL]) || 0,
+        mesActualReal: parseFloat(row[IDX_HISTORICO_END]) || 0,
         mesActualForecast: parseFloat(row[IDX_MES_FORECAST]) || 0,
         promHist: parseFloat(row[IDX_PROM_HIST]) || 0,
         forecastIA: parseFloat(row[IDX_FORECAST_IA]) || 0,
@@ -150,7 +146,7 @@ export async function GET(request: Request) {
       headers: {
         historical: historicalHeaders,
         mesActual,
-        mesActualRealLabel,
+        mesActualRealLabel: mesActual + ' real',
         mesActualForecastLabel,
       },
       data: metrics,
