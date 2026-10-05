@@ -3,30 +3,30 @@ import { NextResponse } from 'next/server';
 
 const AGENCIES = [
   { name: 'Total Grupo',      col: 'D'  },
-  { name: 'Acura Interlomas', col: 'R'  },
-  { name: 'Honda Cuajimalpa', col: 'AF' },
-  { name: 'Honda Interlomas', col: 'AT' },
-  { name: 'KIA Interlomas',   col: 'BH' },
-  { name: 'KIA Iztapalapa',   col: 'BV' },
-  { name: 'MG Cuajimalpa',    col: 'CJ' },
-  { name: 'MG Interlomas',    col: 'CX' },
-  { name: 'MG Iztapalapa',    col: 'DL' },
-  { name: 'MG Santa Fe',      col: 'DZ' },
+  { name: 'Acura Interlomas', col: 'S'  },
+  { name: 'Honda Cuajimalpa', col: 'AH' },
+  { name: 'Honda Interlomas', col: 'AW' },
+  { name: 'KIA Interlomas',   col: 'BL' },
+  { name: 'KIA Iztapalapa',   col: 'CA' },
+  { name: 'MG Cuajimalpa',    col: 'CP' },
+  { name: 'MG Interlomas',    col: 'DE' },
+  { name: 'MG Iztapalapa',    col: 'DT' },
+  { name: 'MG Santa Fe',      col: 'EI' },
 ];
 
-// Septiembre agregó una columna más a cada bloque de agencia (de 13 a 14
-// columnas), por lo que todos los bloques se recorrieron a la derecha.
-const BLOCK_SIZE = 14;
+// Cada mes nuevo agrega una columna más a cada bloque de agencia (Octubre: de 14
+// a 15 columnas), por lo que todos los bloques se recorren a la derecha.
+const BLOCK_SIZE = 15;
 const HEADER_ROW = 7;
 const DATA_START_ROW = 8;
 const DATA_END_ROW = 20;
 
 const IDX_METRICA = 0;
 const IDX_HISTORICO_START = 1;
-const IDX_HISTORICO_END = 10;
-const IDX_MES_FORECAST = 11;
-const IDX_PROM_HIST = 12;
-const IDX_FORECAST_IA = 13;
+const IDX_HISTORICO_END = 11;
+const IDX_MES_FORECAST = 12;
+const IDX_PROM_HIST = 13;
+const IDX_FORECAST_IA = 14;
 
 function colToNumber(col: string): number {
   let result = 0;
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
 
     const historicalHeaders = headerRow.slice(IDX_HISTORICO_START, IDX_HISTORICO_END + 1);
     const mesActualForecastLabel = headerRow[IDX_MES_FORECAST] || 'forecast';
-    const mesActual = 'Sep';
+    const mesActual = 'Oct';
 
     const metrics = rows.map((row: any[]) => {
       const historical: { [key: string]: number } = {};
@@ -107,7 +107,7 @@ export async function GET(request: Request) {
       headers: {
         historical: historicalHeaders,
         mesActual,
-        mesActualRealLabel: 'Sep real',
+        mesActualRealLabel: 'Oct real',
         mesActualForecastLabel,
       },
       data: metrics,
